@@ -1,18 +1,14 @@
 package rsa;
 
 public class SecretKey {
-    private int d;
-    private int p;
-    private int q;
+    private final int d;
+    private final int p;
+    private final int q;
 
     public SecretKey(int d, int p, int q) {
         this.d = d;
         this.p = p;
         this.q = q;
-    }
-
-    public int fn(int p, int q) {
-        return (p - 1) * (q - 1);
     }
 
     public int getD() {

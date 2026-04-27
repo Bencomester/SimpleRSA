@@ -1,8 +1,8 @@
 package rsa;
 
 public class PublicKey {
-    private int n;
-    private int e;
+    private final int n;
+    private final int e;
 
     public PublicKey(int n, int e) {
         this.n = n;
