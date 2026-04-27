@@ -35,11 +35,11 @@ public class SimpleRSA {
     }
 
     public int encrypt(int m, PublicKey pk) {
-        return fastExponentiation(m, pk.e, pk.n);
+        return fastExponentiation(m, pk.getE(), pk.getN());
     }
 
     public int decrypt(int c, SecretKey sk) {
-        return CRT(c, sk.d, sk.p, sk.q);
+        return CRT(c, sk.getD(), sk.getP(), sk.getQ());
     }
 
     public boolean millerRabinTest(int n) {
