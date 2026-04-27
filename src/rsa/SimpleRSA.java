@@ -7,22 +7,23 @@ import java.util.Random;
 public class SimpleRSA {
 
     public void initializeAndGenerateKeys() {
+        final int maxPQ = (int) Math.sqrt(Integer.MAX_VALUE);
         Random rand = new Random();
-        int p = rand.nextInt(2,Integer.MAX_VALUE);
-        while (!millerRabinTest(p)) p = rand.nextInt(2, Integer.MAX_VALUE);
-        int q = rand.nextInt(2, Integer.MAX_VALUE);
-        while (!millerRabinTest(q)) q = rand.nextInt(2, Integer.MAX_VALUE);
-        long n = (long) p * q;
-        long fn = (long) (p - 1) * (q - 1);
+        int p = rand.nextInt(2,maxPQ);
+        while (!millerRabinTest(p)) p = rand.nextInt(2, maxPQ);
+        int q = rand.nextInt(2, maxPQ);
+        while (!millerRabinTest(q)) q = rand.nextInt(2, maxPQ);
+        int n = p * q;
+        int fn = (p - 1) * (q - 1);
 
-        long e = rand.nextLong(fn);
-        ArrayList<Long> inv = extendedEuclideanAlgorithm(e, fn);
+        int e = rand.nextInt(fn);
+        ArrayList<Integer> inv = extendedEuclideanAlgorithm(e, fn);
         while (inv.isEmpty()) {
-            e = rand.nextLong(fn);
+            e = rand.nextInt(fn);
             inv = extendedEuclideanAlgorithm(e, fn);
         }
 
-        long d = inv.get(0);
+        int d = inv.get(0);
         if (d < 0) d += fn;
 
         SecretKey sk = new SecretKey(d, p, q);
@@ -80,18 +81,18 @@ public class SimpleRSA {
     }
 
     //Returns empty lists if not relative primes
-    public ArrayList<Long> extendedEuclideanAlgorithm(long r1, long r2) {
-        long k = 1;
-        long q1 = 0;
-        long q2 = r1 / r2;
-        long x1 = 1;
-        long x2 = 0;
-        long y1 = 0;
-        long y2 = 1;
+    public ArrayList<Integer> extendedEuclideanAlgorithm(int r1, int r2) {
+        int k = 1;
+        int q1 = 0;
+        int q2 = r1 / r2;
+        int x1 = 1;
+        int x2 = 0;
+        int y1 = 0;
+        int y2 = 1;
         while (r1 % r2 > 0) {
             k++;
 
-            long temp = r1;
+            int temp = r1;
             r1 = r2;
             r2 = temp % r1;
 
@@ -111,5 +112,20 @@ public class SimpleRSA {
         x2 = k % 2 == 0 ? x2 : -x2;
         y2 = k % 2 == 0 ? -y2 : y2;
         return new ArrayList<>(Arrays.asList(x2, y2));
+    }
+
+    public int CRT(int a, int d, int p, int q) {
+        int r1 = fastExponentiation(a, (int) (d % (q - 1)), q);
+        int r2 = fastExponentiation(a, (int) (d % (p - 1)), p);
+
+        ArrayList<Integer> inv = extendedEuclideanAlgorithm(p, q);
+        int y1 = (int) (inv.get(0) % q);
+        if (y1 < 0) y1 += q;
+        int y2 = (int) (inv.get(1) % p);
+        if (y2 < 0) y2 += p;
+
+        int n = p * q;
+
+        return (int) ((((long) r1 * p) % n * y1) % n + (((long) r2 * q) % n * y2) % n) % n;
     }
 }
