@@ -15,7 +15,7 @@ public class SimpleRSA {
         int p = rand.nextInt(minPQ,maxPQ);
         while (!millerRabinTest(p)) p = rand.nextInt(minPQ, maxPQ);
         int q = rand.nextInt(minPQ, maxPQ);
-        while (!millerRabinTest(q)) q = rand.nextInt(minPQ, maxPQ);
+        while (!millerRabinTest(q) || p == q) q = rand.nextInt(minPQ, maxPQ);
         int n = p * q;
         int fn = (p - 1) * (q - 1);
 
@@ -43,7 +43,7 @@ public class SimpleRSA {
     }
 
     public boolean millerRabinTest(int n) {
-        return millerRabinTest(n, 3);
+        return millerRabinTest(n, 2) && millerRabinTest(n, 7) && millerRabinTest(n, 61);
     }
 
     public boolean millerRabinTest(int n, int a) {
@@ -68,7 +68,7 @@ public class SimpleRSA {
     public int fastExponentiation(int a, int n, int mod) {
         ArrayList<Integer> nums = new ArrayList<>();
         ArrayList<Long> exps = splitIntoBinaryExponents(n);
-        int num = a;
+        int num = a % mod;
         for (long exp = 1; exp <= exps.getLast(); exp *= 2) {
             if (exps.contains(exp)) nums.add(num);
             num = (int) ((long) num * num % mod);
@@ -131,13 +131,16 @@ public class SimpleRSA {
         int r2 = fastExponentiation(m, (d % (p - 1)), p);
 
         ArrayList<Integer> inv = extendedEuclideanAlgorithm(p, q);
-        int y1 = (int) (inv.get(0) % q);
+        int y1 = inv.get(0);
         if (y1 < 0) y1 += q;
-        int y2 = (int) (inv.get(1) % p);
+        int y2 = inv.get(1);
         if (y2 < 0) y2 += p;
 
         int n = p * q;
 
-        return (int) ((((long) r1 * p) % n * y1) % n + (((long) r2 * q) % n * y2) % n) % n;
+        int part1 = (int) ((long) r1 * p % n * y1 % n);
+        int part2 = (int) ((long) r2 * q % n * y2 % n);
+
+        return (int) (((long) part1 + part2) % n);
     }
 }
