@@ -2,16 +2,19 @@ package test;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import rsa.PublicKey;
+import rsa.SecretKey;
 import rsa.SimpleRSA;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public class UnitTest {
 
     @Test
     public void testBinarySplitting() {
         SimpleRSA rsa = new SimpleRSA();
-        Assertions.assertEquals(Arrays.asList(8, 16, 32, 64), rsa.splitIntoBinaryExponents(120));
+        Assertions.assertEquals(Arrays.asList(8L, 16L, 32L, 64L), rsa.splitIntoBinaryExponents(120));
 
     }
 
@@ -39,5 +42,15 @@ public class UnitTest {
     public void CRTTest() {
         SimpleRSA rsa = new SimpleRSA();
         Assertions.assertEquals(10, rsa.CRT(3117, 5171, 107, 103));
+    }
+
+    @Test
+    public void encryptionDecryptionTest() {
+        SimpleRSA rsa = new SimpleRSA();
+        Map.Entry<SecretKey, PublicKey> keys = rsa.initializeAndGenerateKeys();
+        SecretKey sk = keys.getKey();
+        PublicKey pk = keys.getValue();
+        int m = 8726;
+        Assertions.assertEquals(m, rsa.decrypt(rsa.encrypt(m,pk), sk));
     }
 }
