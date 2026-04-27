@@ -32,6 +32,12 @@ public class UnitTest {
     @Test
     public void extendedEuclideanTest() {
         SimpleRSA rsa = new SimpleRSA();
-        Assertions.assertEquals(Arrays.asList(7L, -142L), rsa.extendedEuclideanAlgorithm(345, 17));
+        Assertions.assertEquals(Arrays.asList(7, -142), rsa.extendedEuclideanAlgorithm(345, 17));
+    }
+
+    @Test
+    public void CRTTest() {
+        SimpleRSA rsa = new SimpleRSA();
+        Assertions.assertEquals(10, rsa.CRT(3117, 5171, 107, 103));
     }
 }
