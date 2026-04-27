@@ -1,10 +1,10 @@
 package rsa;
 
 public class PublicKey {
-    long n;
-    long e;
+    int n;
+    int e;
 
-    public PublicKey(long n, long e) {
+    public PublicKey(int n, int e) {
         this.n = n;
         this.e = e;
     }
