@@ -8,6 +8,7 @@ import rsa.SimpleRSA;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Random;
 
 public class UnitTest {
 
@@ -52,5 +53,24 @@ public class UnitTest {
         PublicKey pk = keys.getValue();
         int m = 8726;
         Assertions.assertEquals(m, rsa.decrypt(rsa.encrypt(m,pk), sk));
+        Assertions.assertEquals(2, rsa.decrypt(rsa.encrypt(2,pk), sk));
+        Assertions.assertEquals(3, rsa.decrypt(rsa.encrypt(3,pk), sk));
+        m = pk.getN() - 1;
+        Assertions.assertEquals(m, rsa.decrypt(rsa.encrypt(m,pk), sk));
+    }
+
+    @Test
+    public void massEncryptionDecryptionTest() {
+        SimpleRSA rsa = new SimpleRSA();
+        Random random = new Random();
+
+        for (int i = 0; i < 10000; i++) {
+            Map.Entry<SecretKey, PublicKey> keys = rsa.initializeAndGenerateKeys();
+            SecretKey sk = keys.getKey();
+            PublicKey pk = keys.getValue();
+
+            int m = random.nextInt(1000, pk.getN());
+            Assertions.assertEquals(m, rsa.decrypt(rsa.encrypt(m,pk), sk), "Failed on iteration " + i + ", with p=" + sk.getP() + " q=" + sk.getQ() + " e=" + pk.getE() + " d=" + sk.getD());
+        }
     }
 }
