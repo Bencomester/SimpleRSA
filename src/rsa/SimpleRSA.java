@@ -8,10 +8,10 @@ public class SimpleRSA {
 
     public void initializeAndGenerateKeys() {
         Random rand = new Random();
-        int p = rand.nextInt();
-        while (!millerRabinTest(p)) p = rand.nextInt();
-        int q = rand.nextInt();
-        while (!millerRabinTest(q)) q = rand.nextInt();
+        int p = rand.nextInt(2,Integer.MAX_VALUE);
+        while (!millerRabinTest(p)) p = rand.nextInt(2, Integer.MAX_VALUE);
+        int q = rand.nextInt(2, Integer.MAX_VALUE);
+        while (!millerRabinTest(q)) q = rand.nextInt(2, Integer.MAX_VALUE);
         long n = (long) p * q;
         long fn = (long) (p - 1) * (q - 1);
 
@@ -23,6 +23,7 @@ public class SimpleRSA {
         }
 
         long d = inv.get(0);
+        if (d < 0) d += fn;
 
         SecretKey sk = new SecretKey(d, p, q);
         PublicKey pk = new PublicKey(n, e);
@@ -36,13 +37,17 @@ public class SimpleRSA {
         int d = n - 1;
         int s = 0;
         while(d % 2 == 0) {
-            d = d >> 1;
+            d >>= 1;
             s++;
         }
 
-        if (fastExponentiation(a, d, n) == 1) return true;
+        int ad = fastExponentiation(a, d, n);
+        if (ad == 1) return true;
+
+
         for (int i = 0; i < s; i++) {
-            if (fastExponentiation(a, d * Math.powExact(2, i), n) == n - 1) return true;
+            if (ad == n - 1) return true;
+            ad = (int) ((long) ad * ad) % n;
         }
         return false;
     }
@@ -53,12 +58,12 @@ public class SimpleRSA {
         int num = a;
         for (int exp = 1; exp <= exps.getLast(); exp *= 2) {
             if (exps.contains(exp)) nums.add(num);
-            num = (num * num) % mod;
+            num = (int) ((long) num * num) % mod;
         }
 
         int prod = 1;
         for (int i : nums) {
-            prod = (prod * i) % mod;
+            prod = (int) ((long) prod * i) % mod;
         }
         return prod;
     }
