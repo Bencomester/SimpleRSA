@@ -2,17 +2,20 @@ package rsa;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
 
 public class SimpleRSA {
 
-    public void initializeAndGenerateKeys() {
+    public Map.Entry<SecretKey, PublicKey> initializeAndGenerateKeys() {
+
         final int maxPQ = (int) Math.sqrt(Integer.MAX_VALUE);
+        final int minPQ = 10000;
         Random rand = new Random();
-        int p = rand.nextInt(2,maxPQ);
-        while (!millerRabinTest(p)) p = rand.nextInt(2, maxPQ);
-        int q = rand.nextInt(2, maxPQ);
-        while (!millerRabinTest(q)) q = rand.nextInt(2, maxPQ);
+        int p = rand.nextInt(minPQ,maxPQ);
+        while (!millerRabinTest(p)) p = rand.nextInt(minPQ, maxPQ);
+        int q = rand.nextInt(minPQ, maxPQ);
+        while (!millerRabinTest(q)) q = rand.nextInt(minPQ, maxPQ);
         int n = p * q;
         int fn = (p - 1) * (q - 1);
 
@@ -28,6 +31,15 @@ public class SimpleRSA {
 
         SecretKey sk = new SecretKey(d, p, q);
         PublicKey pk = new PublicKey(n, e);
+        return Map.entry(sk, pk);
+    }
+
+    public int encrypt(int m, PublicKey pk) {
+        return fastExponentiation(m, pk.e, pk.n);
+    }
+
+    public int decrypt(int c, SecretKey sk) {
+        return CRT(c, sk.d, sk.p, sk.q);
     }
 
     public boolean millerRabinTest(int n) {
@@ -55,23 +67,23 @@ public class SimpleRSA {
 
     public int fastExponentiation(int a, int n, int mod) {
         ArrayList<Integer> nums = new ArrayList<>();
-        ArrayList<Integer> exps = splitIntoBinaryExponents(n);
+        ArrayList<Long> exps = splitIntoBinaryExponents(n);
         int num = a;
-        for (int exp = 1; exp <= exps.getLast(); exp *= 2) {
+        for (long exp = 1; exp <= exps.getLast(); exp *= 2) {
             if (exps.contains(exp)) nums.add(num);
-            num = (int) ((long) num * num) % mod;
+            num = (int) ((long) num * num % mod);
         }
 
         int prod = 1;
         for (int i : nums) {
-            prod = (int) ((long) prod * i) % mod;
+            prod = (int) ((long) prod * i % mod);
         }
         return prod;
     }
 
-    public ArrayList<Integer> splitIntoBinaryExponents(int n) {
-        int exp = 1;
-        ArrayList<Integer> list = new ArrayList<>();
+    public ArrayList<Long> splitIntoBinaryExponents(int n) {
+        long exp = 1;
+        ArrayList<Long> list = new ArrayList<>();
         while(n > 0) {
             if (n % 2 == 1) list.add(exp);
             n = n / 2;
@@ -85,38 +97,38 @@ public class SimpleRSA {
         int k = 1;
         int q1 = 0;
         int q2 = r1 / r2;
-        int x1 = 1;
-        int x2 = 0;
-        int y1 = 0;
-        int y2 = 1;
+        long x1 = 1;
+        long x2 = 0;
+        long y1 = 0;
+        long y2 = 1;
         while (r1 % r2 > 0) {
             k++;
 
-            int temp = r1;
+            int tempR = r1;
             r1 = r2;
-            r2 = temp % r1;
+            r2 = tempR % r1;
 
             q1 = q2;
             q2 = r1 / r2;
 
-            temp = x1;
+            long tempX = x1;
             x1 = x2;
-            x2 = x1 * q1 + temp;
+            x2 = x1 * q1 + tempX;
 
-            temp = y1;
+            long tempY = y1;
             y1 = y2;
-            y2 = y1 * q1 + temp;
+            y2 = y1 * q1 + tempY;
         }
 
         if (r2 != 1) return new ArrayList<>();
         x2 = k % 2 == 0 ? x2 : -x2;
         y2 = k % 2 == 0 ? -y2 : y2;
-        return new ArrayList<>(Arrays.asList(x2, y2));
+        return new ArrayList<>(Arrays.asList((int) x2, (int) y2));
     }
 
-    public int CRT(int a, int d, int p, int q) {
-        int r1 = fastExponentiation(a, (int) (d % (q - 1)), q);
-        int r2 = fastExponentiation(a, (int) (d % (p - 1)), p);
+    public int CRT(int m, int d, int p, int q) {
+        int r1 = fastExponentiation(m, (d % (q - 1)), q);
+        int r2 = fastExponentiation(m, (d % (p - 1)), p);
 
         ArrayList<Integer> inv = extendedEuclideanAlgorithm(p, q);
         int y1 = (int) (inv.get(0) % q);
