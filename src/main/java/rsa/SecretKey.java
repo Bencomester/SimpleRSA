@@ -22,4 +22,15 @@ public class SecretKey {
     public int getQ() {
         return q;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("SecretKey{");
+        sb.append("d=").append(d);
+        sb.append(", p=").append(p);
+        sb.append(", q=").append(q);
+        sb.append(", fn=").append((p - 1) * (q - 1));
+        sb.append('}');
+        return sb.toString();
+    }
 }

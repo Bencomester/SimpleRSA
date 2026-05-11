@@ -16,4 +16,13 @@ public class PublicKey {
     public int getE() {
         return e;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("PublicKey{");
+        sb.append("n=").append(n);
+        sb.append(", e=").append(e);
+        sb.append('}');
+        return sb.toString();
+    }
 }
