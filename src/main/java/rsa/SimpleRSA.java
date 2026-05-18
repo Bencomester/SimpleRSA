@@ -1,5 +1,7 @@
 package rsa;
 
+import org.jspecify.annotations.NonNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -8,14 +10,15 @@ import java.util.Random;
 public class SimpleRSA {
 
     public Map.Entry<SecretKey, PublicKey> initializeAndGenerateKeys() {
-
         final int maxPQ = (int) Math.sqrt(Integer.MAX_VALUE);
         final int minPQ = 10000;
         Random rand = new Random();
+        
         int p = rand.nextInt(minPQ,maxPQ);
         while (!millerRabinTest(p)) p = rand.nextInt(minPQ, maxPQ);
         int q = rand.nextInt(minPQ, maxPQ);
         while (!millerRabinTest(q) || p == q) q = rand.nextInt(minPQ, maxPQ);
+
         int n = p * q;
         int fn = (p - 1) * (q - 1);
 
@@ -26,7 +29,7 @@ public class SimpleRSA {
             inv = extendedEuclideanAlgorithm(e, fn);
         }
 
-        int d = inv.get(0);
+        int d = inv.getFirst();
         if (d < 0) d += fn;
 
         SecretKey sk = new SecretKey(d, p, q);
@@ -34,12 +37,29 @@ public class SimpleRSA {
         return Map.entry(sk, pk);
     }
 
-    public int encrypt(int m, PublicKey pk) {
+    public int encrypt(int m, @NonNull PublicKey pk) {
         return fastExponentiation(m, pk.getE(), pk.getN());
     }
 
-    public int decrypt(int c, SecretKey sk) {
+    public int decrypt(int c, @NonNull SecretKey sk) {
         return CRT(c, sk.getD(), sk.getP(), sk.getQ());
+    }
+
+    public int[] encrypt(String m, @NonNull PublicKey pk) {
+        char[] chars = m.toCharArray();
+        int[] c = new int[chars.length];
+        for (int i = 0; i < chars.length; i++) {
+            c[i] = encrypt(chars[i],pk);
+        }
+        return c;
+    }
+
+    public String decrypt(int[] c, @NonNull SecretKey sk) {
+        StringBuilder b = new StringBuilder();
+        for (int i : c) {
+            b.append((char) decrypt(i,sk));
+        }
+        return b.toString();
     }
 
     public boolean millerRabinTest(int n) {
@@ -66,33 +86,21 @@ public class SimpleRSA {
     }
 
     public int fastExponentiation(int a, int n, int mod) {
-        ArrayList<Integer> nums = new ArrayList<>();
-        ArrayList<Long> exps = splitIntoBinaryExponents(n);
         int num = a % mod;
-        for (long exp = 1; exp <= exps.getLast(); exp *= 2) {
-            if (exps.contains(exp)) nums.add(num);
+        int prod = 1;
+
+        while(n > 0) {
+            if (n % 2 == 1) {
+                prod = (int) ((long) prod * num % mod);
+            }
             num = (int) ((long) num * num % mod);
+            n = n / 2;
         }
 
-        int prod = 1;
-        for (int i : nums) {
-            prod = (int) ((long) prod * i % mod);
-        }
         return prod;
     }
 
-    public ArrayList<Long> splitIntoBinaryExponents(int n) {
-        long exp = 1;
-        ArrayList<Long> list = new ArrayList<>();
-        while(n > 0) {
-            if (n % 2 == 1) list.add(exp);
-            n = n / 2;
-            exp *= 2;
-        }
-        return list;
-    }
-
-    //Returns empty lists if not relative primes
+    //Returns empty list if not relative primes
     public ArrayList<Integer> extendedEuclideanAlgorithm(int r1, int r2) {
         int k = 1;
         int q1 = 0;

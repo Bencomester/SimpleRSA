@@ -11,13 +11,6 @@ import java.util.Random;
 public class UnitTest {
 
     @Test
-    public void testBinarySplitting() {
-        SimpleRSA rsa = new SimpleRSA();
-        Assertions.assertEquals(Arrays.asList(8L, 16L, 32L, 64L), rsa.splitIntoBinaryExponents(120));
-
-    }
-
-    @Test
     public void fastExponentiationTest() {
         SimpleRSA rsa = new SimpleRSA();
         Assertions.assertEquals(9025, rsa.fastExponentiation(43, 120, 10403));
@@ -58,6 +51,19 @@ public class UnitTest {
     }
 
     @Test
+    public void stringEncryptionTest() {
+        SimpleRSA rsa = new SimpleRSA();
+        Map.Entry<SecretKey, PublicKey> keys = rsa.initializeAndGenerateKeys();
+        SecretKey sk = keys.getKey();
+        PublicKey pk = keys.getValue();
+
+        Assertions.assertEquals("test", rsa.decrypt(rsa.encrypt("test", pk), sk));
+        Assertions.assertEquals("message", rsa.decrypt(rsa.encrypt("message", pk), sk));
+        Assertions.assertEquals("thisIsAVeryLongStringToEncryptUsingTheRSAAlgorithm",
+                rsa.decrypt(rsa.encrypt("thisIsAVeryLongStringToEncryptUsingTheRSAAlgorithm", pk), sk));
+    }
+
+    @Test
     public void massEncryptionDecryptionTest() {
         SimpleRSA rsa = new SimpleRSA();
         Random random = new Random();
@@ -68,7 +74,11 @@ public class UnitTest {
             PublicKey pk = keys.getValue();
 
             int m = random.nextInt(1000, pk.getN());
-            Assertions.assertEquals(m, rsa.decrypt(rsa.encrypt(m,pk), sk), "Failed on iteration " + i + ", with p=" + sk.getP() + " q=" + sk.getQ() + " e=" + pk.getE() + " d=" + sk.getD());
+            Assertions.assertEquals(m,
+                    rsa.decrypt(rsa.encrypt(m,pk), sk),
+                    String.format("Failed on iteration %d, with p=%d q=%d e=%d d=%d", i,sk.getP(), sk.getQ(), pk.getE(), sk.getD())
+            );
+
         }
     }
 }
